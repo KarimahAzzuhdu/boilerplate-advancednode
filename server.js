@@ -37,10 +37,12 @@ myDB(async client => {
       showLogin: true
     });
   });
+
   app.route('/login').post(passport.authenticate('local', {failureRedirect: '/'}), (req, res) => {
     res.redirect('/profile');
   })
-  app.route('/profile').get((req, res) => {
+
+  app.route('/profile').get(ensureAuthenticated, (req, res) => {
     res.render('profile');
   })
 
@@ -75,3 +77,9 @@ app.listen(PORT, () => {
   console.log('Listening on port ' + PORT);
 });
 
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect('/');
+};
