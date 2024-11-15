@@ -15,6 +15,7 @@ const io = require('socket.io')(http);
 const passportSocketIo = require('passport.socketio');
 const cookieParser = require('cookie-parser');
 const connect = require('mongodb');
+const { SocketAddress } = require('net');
 const MongoStore = require('connect-mongo')(session);
 const URI = process.env.MONGO_URI;
 const store = new MongoStore({ url: URI});
@@ -63,6 +64,14 @@ myDB(async client => {
       currentUsers,
       connected: true
     });
+
+    socket.on('chat message', (message) => {
+      io.emit('chat message', { 
+        username: socket.request.user.username, 
+        message 
+      });
+    });
+
     console.log('user has connected');
 
     socket.on('disconnect', () => {
@@ -91,8 +100,8 @@ function onAuthorizeSuccess(data, accept){
   accept(null, true);
 }
 
-function onAuthorizeFail(data, message, error){
+function onAuthorizeFail(data, message, error, accept){
   if (error) throw new Error(message);
-  console.log('failed connection to socket.io');
+  console.log('failed connection to socket.io:', message);
   accept(null, false);
 }
